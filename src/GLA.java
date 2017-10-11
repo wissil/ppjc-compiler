@@ -1,4 +1,4 @@
-package hr.fer.zemris.ppj.compiler.lexical;
+
 
 public class GLA {
 
