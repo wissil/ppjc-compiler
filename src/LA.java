@@ -49,8 +49,10 @@ public class LA {
 	
 	/**
 	 * Performs the lexical analysis of the input stream.
+	 * 
+	 * @param filename	Name of the file to be lexically analyzed.
 	 */
-	public void analyze() {
+	public void analyze(String filename) {
 		
 	}
 }

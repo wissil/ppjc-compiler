@@ -1,7 +1,7 @@
 import java.io.InputStream;
 
 /**
- * <b>Generator of Lexical Analyzer.</b> <br>
+ * <b>Generator of Lexical Analyzer</b><br>
  * 
  * This class is used for generating the <b>Lexical Analyzer</b> 
  * based on it's definitions. <br>
@@ -43,10 +43,11 @@ public class GLA {
 
 	/**
 	 * Generates the objects needed by the {@link LA}.<br>
-	 * 
 	 * In terms, generates the automatons used by the <b>Lexical Analyzer</b>.
+	 * 
+	 * @param toFilename		Name of the file that this {@link GLA} generates it's output.
 	 */
-	public void generateLA() {
+	public void generateLA(String toFilename) {
 		
 	}
 }
