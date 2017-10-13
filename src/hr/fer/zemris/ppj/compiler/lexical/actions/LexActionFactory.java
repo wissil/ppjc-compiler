@@ -18,7 +18,7 @@ public class LexActionFactory {
 	public static LexAction produce(String[] args) {		
 		switch (args[0]) {
 			case NewLineAction.NAME: return new NewLineAction();
-			case EnterStateAction.NAME: return new EnterStateAction();
+			case EnterStateAction.NAME: return new EnterStateAction(args[1]);
 			case GoBackAction.NAME: return new GoBackAction(Integer.parseInt(args[1]));
 			case SkipAction.NAME: return new SkipAction();
 			default: throw new IllegalArgumentException(String.format("Action with name %s is not supported.", args[0]));
