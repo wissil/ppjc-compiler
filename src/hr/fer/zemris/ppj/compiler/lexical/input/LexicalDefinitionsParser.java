@@ -69,6 +69,11 @@ public class LexicalDefinitionsParser {
 	private final Map<String, List<LexRule>> states;
 	
 	/**
+	 * Container for the data parsed by this parser.
+	 */
+	private final LexicalData lexData;
+	
+	/**
 	 * Current line being read from the stream.
 	 */
 	private String currLine = null;
@@ -83,6 +88,7 @@ public class LexicalDefinitionsParser {
 		this.stateNames = new ArrayList<>();
 		this.lexUnits = new ArrayList<>();
 		this.states = new LinkedHashMap<>();
+		this.lexData = LexicalData.getInstance();
 	}
 	
 	/**
