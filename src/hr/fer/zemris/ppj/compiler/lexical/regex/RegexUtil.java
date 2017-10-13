@@ -62,6 +62,7 @@ public class RegexUtil {
      * @param open	Opening operator
      * @param close Closing operator
      * @param startFrom	Starting index
+     * 
      * @return Index of a first found closing operator, <code>-1</code> if none found.
      */
     private static int findCloser(String regex, char open, char close, int startFrom) {
