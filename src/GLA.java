@@ -50,4 +50,5 @@ public class GLA {
 	public void generateLA(String toFilename) {
 		
 	}
+	
 }
