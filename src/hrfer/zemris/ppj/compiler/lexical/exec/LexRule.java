@@ -1,4 +1,4 @@
-package hr.fer.zemris.ppj.compiler.lexical.rules;
+package hr.fer.zemris.ppj.compiler.lexical.exec;
 
 import java.io.Serializable;
 import java.util.List;
@@ -16,7 +16,7 @@ import hr.fer.zemris.ppj.compiler.lexical.automata.LexAutomaton;
  * @author fiilip
  *
  */
-public class LexRule implements Serializable {
+public class LexRule implements LexExecutable, Serializable {
 
 	/**
 	 * Generated serial version UID needed by the serializable class.
@@ -50,6 +50,40 @@ public class LexRule implements Serializable {
 		this.lexUnit = Objects.requireNonNull(lexUnit);
 		this.automaton = Objects.requireNonNull(automaton);
 		this.actions = Objects.requireNonNull(actions);
+	}
+	
+	/**
+     * Tests if this lexical rule has an associated lexical unit.
+     * 
+     * @return <code>True</code> if it has a lexical unit, <code>false</code> otherwise.
+     */
+    public boolean hasLexUnit() {
+        return !"-".equals(lexUnit.trim());
+    }
+
+    /**
+     * Returns this rule's lexical unit.
+     * 
+     * @return Lexical unit of this rule.
+     */
+    public String lexUnit() {
+        return lexUnit;
+    }
+
+    /**
+     * Gets the automaton that is used to match a regEx for this rule.
+     * 
+     * @return Automaton that matches regEx.
+     */
+    public LexAutomaton getAutomaton() {
+        return automaton;
+    }
+
+	@Override
+	public void execute(Lex lex) {
+		for (LexAction action : actions) {
+			action.execute(lex);
+		}
 	}
 
 }
