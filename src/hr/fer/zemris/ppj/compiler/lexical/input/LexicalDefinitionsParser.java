@@ -7,13 +7,19 @@ import java.io.InputStreamReader;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import hr.fer.zemris.ppj.compiler.lexical.actions.LexAction;
 import hr.fer.zemris.ppj.compiler.lexical.actions.LexActionFactory;
+import hr.fer.zemris.ppj.compiler.lexical.automata.LexAutomaton;
+import hr.fer.zemris.ppj.compiler.lexical.automata.LexAutomatonMerged;
 import hr.fer.zemris.ppj.compiler.lexical.rules.LexRule;
 
 /**
@@ -28,9 +34,30 @@ import hr.fer.zemris.ppj.compiler.lexical.rules.LexRule;
 public class LexicalDefinitionsParser {
 	
 	/**
+	 * Pattern for lines containing lexical rules.
+	 */
+	private static final String LEX_RULE_PATTERN = "<.*>";
+	
+	/**
 	 * Pattern for lines containing regular definitions.
 	 */
 	private static final String REG_DEF_PATTERN = "\\{[a-z]+[A-Z]*[a-z]*\\} ";
+	
+	/**
+	 * Pattern that symbolizes the end of the action arguments.
+	 */
+	private static final String ACTIONS_END_PATTERN = "}";
+	
+	/**
+	 * Symbol that represents the end of a regular definition.
+	 */
+	private static final char REG_DEF_END_SYM = '}';
+	
+	
+	/**
+	 * Symbol that represents the end of a state name.
+	 */
+	private static final char STATE_NAME_END_SYM = '>';
 	
 	/**
 	 * Pattern for lines containing lexical units.
@@ -69,9 +96,15 @@ public class LexicalDefinitionsParser {
 	private final Map<String, List<LexRule>> states;
 	
 	/**
-	 * Container for the data parsed by this parser.
+	 * Single lexical automaton merged from all the lexical automatons parsed from the input.<br>
+	 * M_1, M_2, ..., M_n --> M_merged
 	 */
-	private final LexicalData lexData;
+	private final LexAutomatonMerged automatonMerged;
+	
+	/**
+	 * Set of regular definitions defined in the input stream.
+	 */
+	private final Map<String, String> regDefs;
 	
 	/**
 	 * Current line being read from the stream.
@@ -88,7 +121,8 @@ public class LexicalDefinitionsParser {
 		this.stateNames = new ArrayList<>();
 		this.lexUnits = new ArrayList<>();
 		this.states = new LinkedHashMap<>();
-		this.lexData = LexicalData.getInstance();
+		this.regDefs = new HashMap<>();
+		this.automatonMerged = LexAutomatonMerged.getInstance();
 	}
 	
 	/**
@@ -108,12 +142,50 @@ public class LexicalDefinitionsParser {
 		}
 	}
 
+	/**
+	 * Reads lexical rules from the input.
+	 * 
+	 * @param reader Input reader.
+	 * @throws IOException
+	 */
 	private void readLexRules(BufferedReader reader) throws IOException {
 		while ((currLine = reader.readLine()) != null) {
+			// check for errors
+			if (!isLexRuleLine(currLine)) {
+				throw new IllegalStateException(String.format(
+						"Lexical rule expected but not found in line: '%s'. Check the input stream format.", currLine));
+			}
 			
+			int endOfStateNameIdx = currLine.indexOf(STATE_NAME_END_SYM);
+			
+			String state = currLine.substring(1, endOfStateNameIdx);
+			String regEx = currLine.substring(endOfStateNameIdx + 1);
+			
+			// create automaton from regex
+			LexAutomaton automaton = automatonMerged.fromRegEx(regEx);
+			
+			// skip '{' symbols
+			reader.readLine();
+			
+			String lexUnit = reader.readLine();
+			List<LexAction> actions = new LinkedList<>();
+			
+			while (!isActionsEnd(currLine = reader.readLine())) {
+				actions.add(getLexActionFromLine(currLine));
+			}
+			
+			List<LexRule> lexRules = getLexRules(state);
+			lexRules.add(new LexRule(lexUnit, automaton, actions));
+			states.put(state, lexRules);
 		}
 	}
 
+	/**
+	 * Reads lexical units from the input.
+	 * 
+	 * @param reader Input reader.
+	 * @throws IOException
+	 */
 	private void readLexUnits(BufferedReader reader) throws IOException {
 		// check for errors
 		if (!isLexUnitsLine(currLine = reader.readLine())) {
@@ -121,8 +193,19 @@ public class LexicalDefinitionsParser {
 					"Lexical units expected but not found in line: '%s'. Check the input stream format.", currLine));
 		}
 		
+		// ignore the first 3 symbols "%L "
+		currLine = currLine.substring(3);
+		String[] lexUnitsArr = currLine.split("\\s");
+		
+		// add to the lexical units
+		lexUnits.addAll(Arrays.asList(lexUnitsArr));
 	}
 
+	/**
+	 * Reads state names from the input.
+	 * 
+	 * @param reader Input reader.
+	 */
 	private void readStates(BufferedReader reader) {
 		// check for errors
 		if (!isLexStatesLine(currLine)) {
@@ -130,18 +213,31 @@ public class LexicalDefinitionsParser {
 					"Lexical states expected but not found in line: '%s'. Check the input stream format.", currLine));
 		}
 		
+		// ignore the first 3 symbols "%X "
+		currLine = currLine.substring(3);
+		String[] stateNamesArr = currLine.split("\\s");
+		
+		// add to the state names
+		stateNames.addAll(Arrays.asList(stateNamesArr));
 	}
 
 	/**
 	 * Reads regular definitions from the input.
 	 * 
-	 * @param reader		Input reader.
+	 * @param reader	 Input reader.
 	 * @throws IOException 
 	 */
 	private void readRegDef(BufferedReader reader) throws IOException {	
 		while (isRegDefLine(currLine = reader.readLine())) {
+			int regDefEndIdx = currLine.charAt(REG_DEF_END_SYM);
 			
+			String regDefName = currLine.substring(1, regDefEndIdx);
+			String regEx = currLine.substring(regDefEndIdx + 2);
+			
+			regDefs.put(regDefName, regEx);
 		}
+		// assign generated reg defs to the merged automaton
+		automatonMerged.setRegDefs(Collections.unmodifiableMap(regDefs));
 	}
 	
 	/**
@@ -176,6 +272,45 @@ public class LexicalDefinitionsParser {
 	private boolean isLexStatesLine(String line) {
 		return line.startsWith(LEX_STATES_PATTERN);
 	}
+	
+	/**
+	 * Helper method that evaluates whether or not the current line
+	 * contains a lexical rule definition.
+	 * 
+	 * @param line	Line being evaluated.
+	 * @return <code>True</code> if the line contains lexical rule definition, <code>false</code> otherwise.
+	 */
+	private boolean isLexRuleLine(String line) {
+		return line.startsWith(LEX_RULE_PATTERN);
+	}
+	
+	/**
+	 * Helper method that evaluates whether or not the current line
+	 * represents the end of the action arguments..
+	 * 
+	 * @param line	Line being evaluated.
+	 * @return <code>True</code> if the line is the actions end, <code>false</code> otherwise.
+	 */
+	private boolean isActionsEnd(String line) {
+		return line.startsWith(ACTIONS_END_PATTERN);
+	}
+	
+	/**
+	 * Gets the lexical rules associated to the given <code>state</code>.
+	 * 
+	 * @param state State of interest.
+	 * @return List of lexical rules associated to the given <code>state</code>, or
+	 * an empty list if no such states exist.
+	 */
+	private List<LexRule> getLexRules(String state) {
+		List<LexRule> lexRules = states.get(state);
+		
+		if (lexRules == null) {
+			lexRules = new LinkedList<>();
+		}
+		
+		return lexRules;
+	}
 
 	/**
 	 * Parses the action from the given line.
@@ -188,5 +323,4 @@ public class LexicalDefinitionsParser {
 		
 		return LexActionFactory.produce(args);
 	}
-
 }
