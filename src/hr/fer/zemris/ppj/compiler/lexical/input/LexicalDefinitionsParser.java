@@ -20,7 +20,7 @@ import hr.fer.zemris.ppj.compiler.lexical.actions.LexAction;
 import hr.fer.zemris.ppj.compiler.lexical.actions.LexActionFactory;
 import hr.fer.zemris.ppj.compiler.lexical.automata.LexAutomaton;
 import hr.fer.zemris.ppj.compiler.lexical.automata.LexAutomatonMerged;
-import hr.fer.zemris.ppj.compiler.lexical.rules.LexRule;
+import hr.fer.zemris.ppj.compiler.lexical.exec.LexRule;
 
 /**
  * This class is used to read in the lexical rules of the given language,

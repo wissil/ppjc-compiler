@@ -215,7 +215,7 @@ public class LexAutomatonMerged implements Serializable {
 	 * @param state
 	 * @return
 	 */
-	private Map<Character, Integer> getNormalStates(int state) {
+	public Map<Character, Integer> getNormalStates(int state) {
 		Map<Character, Integer> transition = transitions.get(state);
 		
 		if (transition == null) {
@@ -244,7 +244,7 @@ public class LexAutomatonMerged implements Serializable {
 	 * @return States that can be accessed via eps transitions, or an empty set
 	 * if such states don't exist.
 	 */
-	private Set<Integer> getEpsilonStates(int state) {
+	public Set<Integer> getEpsilonStates(int state) {
 		Set<Integer> states = epsTransitions.get(state);
 		
 		if (states == null) {
