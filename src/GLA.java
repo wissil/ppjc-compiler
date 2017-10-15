@@ -1,4 +1,9 @@
+import java.io.IOException;
 import java.io.InputStream;
+import java.io.ObjectOutputStream;
+
+import hr.fer.zemris.ppj.compiler.lexical.input.LexicalDefinitionsParser;
+import hr.fer.zemris.ppj.compiler.util.StreamManager;
 
 /**
  * <b>Generator of Lexical Analyzer</b><br>
@@ -21,9 +26,10 @@ public class GLA {
 	 * @param args	Not used.
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		new GLA(System.in).generateLA(StreamManager.LEX_OBJECTS);
 	}
+	
+	private final StreamManager streamManager;
 	
 	/**
 	 * Source of the input file containing the definitions.<br>
@@ -39,6 +45,7 @@ public class GLA {
 	 */
 	public GLA(InputStream istream) {
 		this.istream = istream;
+		this.streamManager = new StreamManager();
 	}
 
 	/**
@@ -48,7 +55,18 @@ public class GLA {
 	 * @param toFilename		Name of the file that this {@link GLA} generates it's output.
 	 */
 	public void generateLA(String toFilename) {
+		LexicalDefinitionsParser parser = new LexicalDefinitionsParser(istream);
 		
+		// parse the input file into the needed data structures
+		parser.parse();
+		
+		try (ObjectOutputStream stream = streamManager.getOutputStream(toFilename)) {
+			stream.writeObject(parser.getStartState());
+			stream.writeObject(parser.getStates());
+			stream.writeObject(parser.getAutomatonMerged());
+		} catch (IOException e) {
+			System.err.println(String.format("Error occured in GLA: %s.", e.getMessage()));
+		}
 	}
 	
 }

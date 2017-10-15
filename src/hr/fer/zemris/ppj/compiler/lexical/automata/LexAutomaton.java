@@ -46,7 +46,7 @@ public class LexAutomaton implements Automaton<Character> {
 	/**
 	 * Singleton reference to joined automaton containing all the transitions.
 	 */
-	private static final LexAutomatonMerged automatonMerged = LexAutomatonMerged.getInstance();
+	private static LexAutomatonMerged automatonMerged;
 	
 	/**
 	 * Creates a new instance of {@link LexAutomaton}.
@@ -62,6 +62,10 @@ public class LexAutomaton implements Automaton<Character> {
 				
 		currentStates.add(leftState);
 		updateCurrentStates();
+	}
+	
+	public static void setLexAutomatonMerged(LexAutomatonMerged merged) {
+		automatonMerged = merged;
 	}
 	
 	/**

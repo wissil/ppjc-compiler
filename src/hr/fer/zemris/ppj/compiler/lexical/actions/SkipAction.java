@@ -2,6 +2,12 @@ package hr.fer.zemris.ppj.compiler.lexical.actions;
 
 import hr.fer.zemris.ppj.compiler.lexical.exec.Lex;
 
+/**
+ * Skips the input that is currently in the <b>Lexical Analyzer</b>.
+ * 
+ * @author fiilip
+ *
+ */
 public class SkipAction implements LexAction {
 
 	/**
@@ -14,7 +20,6 @@ public class SkipAction implements LexAction {
 
 	@Override
 	public void execute(Lex lex) {
-		// TODO Auto-generated method stub
-		
+		lex.skip();
 	}
 }

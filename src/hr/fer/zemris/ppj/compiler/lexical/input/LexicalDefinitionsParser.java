@@ -14,6 +14,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 
 import hr.fer.zemris.ppj.compiler.lexical.actions.LexAction;
@@ -178,6 +179,44 @@ public class LexicalDefinitionsParser {
 			lexRules.add(new LexRule(lexUnit, automaton, actions));
 			states.put(state, lexRules);
 		}
+	}
+	
+	/**
+	 * Gets the name of the start state.
+	 * 
+	 * This method should be called after the <code>parse()</code> of this object is called.
+	 * 
+	 * @return Name of the start state.
+	 * @throws NoSuchElementException If no states are parsed.
+	 */
+	public String getStartState() {
+		if (stateNames.isEmpty()) {
+			throw new NoSuchElementException("No states are parsed!");
+		}
+		
+		return stateNames.get(0);
+	}
+	
+	/**
+	 * Gets all the states as defined in the input file.<br>
+	 * 
+	 * This method should be called after the <code>parse()</code> of this object is called.
+	 * 
+	 * @return All the states parsed from the input file.
+	 */
+	public Map<String, List<LexRule>> getStates() {
+		return states;
+	}
+
+	/**
+	 * Gets the merged automaton formed from all of the joined automatons.<br>
+	 * 
+	 * This method should be called after the <code>parse()</code> of this object is called.
+	 * 
+	 * @return Constructed and final instance of {@link LexAutomatonMerged}.
+	 */
+	public LexAutomatonMerged getAutomatonMerged() {
+		return automatonMerged;
 	}
 
 	/**
